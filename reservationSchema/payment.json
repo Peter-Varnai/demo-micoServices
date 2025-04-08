@@ -1,0 +1,9 @@
+{
+    "eventId": "uuidv4",
+    "paymentId": "uuidv4",
+    "reservationId": "uuidv4",
+    "userId": "123",
+    "amount": "500.00",
+    "currency": "EUR",
+    "status": "COMPLETED/FAILED"
+}

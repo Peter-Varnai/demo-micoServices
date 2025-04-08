@@ -1,0 +1,8 @@
+{
+    "eventId": "uuidv4",
+    "userId": "123",
+    "reservarionId": "string",
+    "timeStamp": "ISO8601",
+    "paymentId": "uuidv4",
+    "apartmentId": "A1"
+}

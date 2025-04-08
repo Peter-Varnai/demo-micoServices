@@ -1,0 +1,9 @@
+{
+    "reservationID": "integer",
+    "timeStamp": "ISO8601",
+    "timePediod": "string",
+    "apartmentId": "A1",
+    "status": "PENDING",
+    "checkIn": "2025-01-02",
+    "checkOut": "2025-01-18"
+}
