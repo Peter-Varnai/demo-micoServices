@@ -7,6 +7,7 @@ import http from 'node:http';
 import { Kafka } from 'kafkajs'
 import { dateDiff } from '../helpers/helpers.js'
 import { v4 as uuidv4 } from 'uuid'
+import { hasDateConflict } from '../caching/cache.js'
 
 
 const euroPerNight = 55
@@ -15,6 +16,7 @@ const kafka = new Kafka({
     clientID: 'test-app',
     brokers: ['localhost:9092'],
 })
+
 
 const producer = kafka.producer()
 await producer.connect().then(() => {
@@ -33,12 +35,22 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
             body += chunk
         })
 
-
         req.on('end', async () => {
+
+            // console.log(JSON.parse(body))
             try {
                 const reservationJson = JSON.parse(body)
 
                 const { checkIn, checkOut } = reservationJson
+
+                if (await hasDateConflict(checkIn, checkOut)) {
+
+                    res.writeHead(400, cType)
+                    res.end(JSON.stringify({error: "reservation exists already"}))
+
+                    return
+                }
+
 
                 if (checkIn && checkOut) {
                     reservationJson.duration = dateDiff(checkIn, checkOut)
@@ -51,16 +63,7 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
                     messages:[
                         {
                             key: 'reservation-request',
-                            value: JSON.stringify({
-                                user: reservationJson.user,
-                                reservationId: reservationJson.reservationId,
-                                timeStamp: reservationJson.timeStamp,
-                                apartmentId: reservationJson.apartmentId,
-                                status: reservationJson.status,
-                                checkIn: reservationJson.checkIn,
-                                checkOut: reservationJson.checkOut,
-                                duration: reservationJson.duration
-                            })
+                            value: JSON.stringify({ ...reservationJson })
                         }
                     ]
                 },
@@ -74,13 +77,14 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
                                     checkIn: reservationJson.checkIn,
                                     checkOut: reservationJson.checkOut,
                                     price: reservationJson.price,
-                                    reservationId: reservationJson.reservationId, // Fixed typo (ID -> Id)
+                                    reservationId: uuidv4(),
                                     paymentId: uuidv4() 
                                 })
                             }
                         ]
                     },
                 ]
+
                 await producer.sendBatch({topicMessages})
 
                 res.writeHead(200, cType)

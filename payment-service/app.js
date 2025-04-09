@@ -32,8 +32,10 @@ async function processPayment(message) {
         return {
             transactionId: uuidv4(),
             user: paymentRequest.user,
-            reservationId: paymentRequest.reservationID,
+            reservationId: paymentRequest.reservationId,
             price: paymentRequest.price,
+            checkIn: paymentRequest.checkIn,
+            checkOut: paymentRequest.checkOut,
             timestamp: new Date().toISOString(),
             currency: '€', 
             status: 'completed',
@@ -58,6 +60,8 @@ async function handleMessages() {
         eachMessage: async ({ topic, partition, message }) => {
             try {
                 const result = await processPayment(message)
+
+                console.log('payment service', result)
 
                 await producer.send({
                     topic: result.status === 'completed' 

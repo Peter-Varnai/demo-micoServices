@@ -31,17 +31,15 @@ async function reservationConfirm() {
             eachMessage: async ({ topic, partition, message }) => {
                 try {
                     const payment = JSON.parse(message.value.toString())
-                // if (!payment.transactionId || !payment.reservationId) {
-                //   throw new Error('Invalid payment confirmation message')
-                // }
+                    // if (!payment.transactionId || !payment.reservationId) {
+                    //   throw new Error('Invalid payment confirmation message')
+                    // }
 
-                const { checkIn, checkOut, reservationId: rId} = payment
+                    const { checkIn, checkOut, reservationId: rId} = payment
 
+                    await cacheReservation(rId, checkIn, checkOut)
 
-                console.log('reservation confirm', checkIn, checkOut)
-                await cacheReservation(rId, checkIn, checkOut)
-
-                await sendConfirmationEmail(payment)
+                    await sendConfirmationEmail(payment)
 
                     await produceConfirmationEvent(payment)
 
