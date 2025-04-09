@@ -1,17 +1,24 @@
-import { getRandomDates } from '../helpers/helpers.js'
+import { Kafka } from 'kafkajs'
+import { getRandomDates, getRandomName } from '../helpers/helpers.js'
+import { cancelConfirmation } from '../caching/cache.js'
+import { rApartmantId } from '../helpers/helpers.js'
+
+
+const kafka = new Kafka({
+    clientID: 'test-app',
+    brokers: ['localhost:9092'],
+})
+
+const producer = kafka.producer()
 
 setInterval(() => {
-
-    const rNum1 = Math.floor(Math.random() * 30)
-    const rNum2 = Math.floor(Math.random() * 30)
-
     const { checkIn, checkOut } = getRandomDates()
 
     const data = {
-        user: `${firstNames[rNum1]} ${surNames[rNum2]}}`,
+        user: getRandomName(),
         checkIn: checkIn,
         checkOut: checkOut,
-        apartmentId: 'A1',
+        apartmentId: rApartmantId(),
         status: 'PENDING',
         timeStamp: new Date().toISOString()
     }
@@ -25,27 +32,28 @@ setInterval(() => {
     })
         .then(res => res.text())
         .then(response => console.log('Response:', response))
+        // .then(() => {
+        //     const cancelledConfirmation = cancelConfirmation()
+        //     
+        //     console.log('CANCELLING RESERVATION:', cancelledConfirmation)
+        //     producer.send({
+        //         topic: 'cancel-confirmed-reservations',
+        //         messages: [{
+        //             value: JSON.stringify({
+        //                 reservationId: cancelledConfirmation,
+        //                 timeStamp: new Date().toISOString(),
+        //             })
+        //         }] 
+        //     })                        
+        // })
         .catch(err => console.error('Error:', err))
 }, 1000)
 
 
-const firstNames = [
-    "Taleri", "Anaya", "Sven", "Ravi", "Zahara",
-    "Elias", "Noor", "Leandro", "Chika", "Marek",
-    "Soraya", "Mateo", "Amina", "Jun", "Lina",
-    "Kofi", "Emiko", "Aleks", "Tariq", "Isla",
-    "Farid", "Nyasha", "Niko", "Yara", "Thiago",
-    "Selin", "Omar", "Nadia", "Kian", "Ranya"
-]
+process.on('SIGTERM', async () => {
+    await producer.disconnect()
+})
 
-const surNames = [
-    "Sanches", "Haddad", "Takeda", "Okonkwo", "Ivanov",
-    "Fernandez", "Mbatha", "Dubois", "Yilmaz", "Kowalski",
-    "Almeida", "Rahman", "Kim", "Petrov", "Gonzalez",
-    "Singh", "Jafari", "Müller", "Nguyen", "Carvalho",
-    "Bako", "Tanaka", "Novák", "Lemoine", "Silva",
-    "Diop", "Abadi", "Rosales", "Chen", "Kaur"
-]
-
-
-
+process.on('SIGINT', async () => {
+    await producer.disconnect()
+})

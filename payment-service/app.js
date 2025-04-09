@@ -22,16 +22,18 @@ async function processPayment(message) {
     try { 
         const paymentRequest = JSON.parse(message.value.toString())
 
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise(resolve => setTimeout(resolve, 10))
 
-        console.log('Processing payment:', paymentRequest)
+        console.log('Processing payment of:', paymentRequest.user)
         if (Math.random() < 0.1) {
-            throw new Error('Random payment processing failure');
+            throw new Error('Random payment processing failure')
         }
 
         return {
+            paymentId: paymentRequest.paymentId,
             transactionId: uuidv4(),
             user: paymentRequest.user,
+            apartmentId: paymentRequest.apartmentId,
             reservationId: paymentRequest.reservationId,
             price: paymentRequest.price,
             checkIn: paymentRequest.checkIn,
@@ -61,7 +63,7 @@ async function handleMessages() {
             try {
                 const result = await processPayment(message)
 
-                console.log('payment service', result)
+                console.log('PEYMENT PROCESSED', result)
 
                 await producer.send({
                     topic: result.status === 'completed' 
@@ -76,7 +78,7 @@ async function handleMessages() {
                     }]
                 })
             } catch (error) {
-                console.error('Message processing failed:', error)
+                console.error('PAYMENT PROCESSING ERROR:', error)
             }
         },
     })
@@ -87,6 +89,8 @@ handleMessages().catch(console.error)
 
 
 process.on('SIGTERM', async () => {
-    await consumer.disconnect();
-    await producer.disconnect();
-});
+    await consumer.disconnect()
+    await producer.disconnect()
+})
+
+

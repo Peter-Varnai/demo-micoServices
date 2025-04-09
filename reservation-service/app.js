@@ -1,5 +1,5 @@
 /*
- *This file should contain a restful API looking towards the frontend
+ *This file contains a restful API looking towards the frontend
  * and an event producer looking towards the Kafka queue.  
  */
 
@@ -41,9 +41,9 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
             try {
                 const reservationJson = JSON.parse(body)
 
-                const { checkIn, checkOut } = reservationJson
+                const { checkIn, checkOut, apartmentId:aId } = reservationJson
 
-                if (await hasDateConflict(checkIn, checkOut)) {
+                if (await hasDateConflict(aId, checkIn, checkOut)) {
 
                     res.writeHead(400, cType)
                     res.end(JSON.stringify({error: "reservation exists already"}))
@@ -74,9 +74,10 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
                                 key: 'payment', 
                                 value: JSON.stringify({
                                     user: reservationJson.user,
+                                    apartmentId: reservationJson.apartmentId,
                                     checkIn: reservationJson.checkIn,
                                     checkOut: reservationJson.checkOut,
-                                    price: reservationJson.price,
+                                        price: reservationJson.price,
                                     reservationId: uuidv4(),
                                     paymentId: uuidv4() 
                                 })
@@ -97,10 +98,7 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
             } 
 
             /*
-             * TODO: In the evening, complete the flow at least once, to have event messages
-             * consumed by the confirmation service and forwarded to the payment service where
-             * Most importantly, have messages archived, have them stored somewhere or marked 
-             * handled or something
+             * TODO: Save to DB implementation 
              */
 
         })

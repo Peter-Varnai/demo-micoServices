@@ -35,11 +35,11 @@ async function reservationConfirm() {
                 //   throw new Error('Invalid payment confirmation message')
                 // }
 
-                const { checkIn, checkOut, reservationId: rId} = payment
+                const { checkIn, checkOut, reservationId: rId, apartmentId: aId} = payment
 
 
                 console.log('reservation confirm', checkIn, checkOut)
-                await cacheReservation(rId, checkIn, checkOut)
+                await cacheReservation(rId, aId, checkIn, checkOut)
 
                 await sendConfirmationEmail(payment)
 
